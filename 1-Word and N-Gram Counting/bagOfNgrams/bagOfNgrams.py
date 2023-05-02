@@ -166,8 +166,8 @@ bag_of_ngrams = vectorizer.fit_transform(documents)
 
 # Print the bag-of-n-grams model properties
 print("Counts:", bag_of_ngrams.toarray())
-print("Vocabulary:", vectorizer.get_feature_names())
-print("Ngrams:", vectorizer.get_feature_names())
+print("Vocabulary:", vectorizer.get_feature_names_out())
+print("Ngrams:", vectorizer.get_feature_names_out())
 print("NgramLengths:", vectorizer.ngram_range)
-print("NumNgrams:", len(vectorizer.get_feature_names()))
+print("NumNgrams:", len(vectorizer.get_feature_names_out()))
 print("NumDocuments:", len(documents))
