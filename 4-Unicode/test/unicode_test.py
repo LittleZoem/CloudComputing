@@ -75,8 +75,8 @@ class UnicodeTest(unittest.TestCase):
 
         # unicode string
         for actual, expected in [('é', 'é'), ('café', 'café'), ('cafe\u0301', 'café'), ('Å', 'Å'), ('æ', 'æ'),
-                                    ('ﬃ', 'ffi')]:
-                self.assertEqual(Unicode.nfk_d(actual), expected)
+                                 ('ﬃ', 'ffi')]:
+            self.assertEqual(Unicode.nfk_d(actual), expected)
 
         # special characters
         for actual, expected in [('\u212B', 'Å'), ('Ω', 'Ω'), ('ℵ', 'א')]:
@@ -85,6 +85,7 @@ class UnicodeTest(unittest.TestCase):
         # edge case
         for actual, expected in [('\u1E9B\u0323', 'ṩ'), ('\uFEFF', '\uFEFF'), ('\u2060', '\u2060')]:
             self.assertEqual(Unicode.nfk_d(actual), expected)
+
     def test_utf_32(self):
         # empty string
         self.assertEqual([], Unicode.utf_32(''))
@@ -95,9 +96,75 @@ class UnicodeTest(unittest.TestCase):
         self.assertEqual(Unicode.utf_32(ascii_str), expected_hex)
 
     def test_character_categories(self):
-        self.assertEqual('Ll', Unicode.character_categories('é'))
-        self.assertEqual('Ll', Unicode.character_categories('é', Granularity.major))
-        self.assertEqual('Ll', Unicode.character_categories('é', Granularity.detailed))
+        test_cases = [
+            ("Hello, 世界!", Granularity.major, ["L", "L", "L", "L", "L", "P", "Z", "L", "L", "P"]),
+            ("Hello, 世界!", Granularity.detailed, ['Lu', 'Ll', 'Ll', 'Ll', 'Ll', 'Po', 'Zs', 'Lo', 'Lo', 'Po']),
+            ("ABC123!@#", Granularity.major, ["L", "L", "L", "N", "N", "N", "P", "P", "P"]),
+            ("ABC123!@#", Granularity.detailed, ["Lu", "Lu", "Lu", "Nd", "Nd", "Nd", "Po", "Po", "Po"]),
+            ("汉字漢字ハンジ", Granularity.major, ['L', 'L', 'L', 'L', 'L', 'L', 'L']),
+            ("汉字漢字ハンジ", Granularity.detailed, ["Lo", "Lo", "Lo", "Lo", "Lo", "Lo", "Lo", ]),
+            ("Hello, 世界! 汉字漢字ハンジ ABC123!@#", Granularity.major,
+             ['L',
+              'L',
+              'L',
+              'L',
+              'L',
+              'P',
+              'Z',
+              'L',
+              'L',
+              'P',
+              'Z',
+              'L',
+              'L',
+              'L',
+              'L',
+              'L',
+              'L',
+              'L',
+              'Z',
+              'L',
+              'L',
+              'L',
+              'N',
+              'N',
+              'N',
+              'P',
+              'P',
+              'P']),
+            ("Hello, 世界! 汉字漢字ハンジ ABC123!@#", Granularity.detailed,
+             ['Lu',
+              'Ll',
+              'Ll',
+              'Ll',
+              'Ll',
+              'Po',
+              'Zs',
+              'Lo',
+              'Lo',
+              'Po',
+              'Zs',
+              'Lo',
+              'Lo',
+              'Lo',
+              'Lo',
+              'Lo',
+              'Lo',
+              'Lo',
+              'Zs',
+              'Lu',
+              'Lu',
+              'Lu',
+              'Nd',
+              'Nd',
+              'Nd',
+              'Po',
+              'Po',
+              'Po']
+             )
+        ]
+        for text, granularity, expected in test_cases:
+            self.assertEqual(Unicode.character_categories(text, granularity), expected)
 
     def test_hex(self):
         # empty string

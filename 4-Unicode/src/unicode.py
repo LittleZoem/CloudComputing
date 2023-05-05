@@ -59,14 +59,23 @@ class Unicode:
         return utf32_array
 
     @staticmethod
-    def character_categories(s: str, granularity: Granularity = Granularity.major) -> str:
+    def character_categories(s: str, granularity: Granularity = Granularity.major) -> List[str]:
         """
         returns the major Unicode character categories for the characters in the UTF32 object str.
         :param s: UTF32 object
         :param granularity: major or detailed
         :return: Character Categories
         """
-        return unicodedata.category(s)
+
+        categories = []
+
+        for char in s:
+            char_category = unicodedata.category(char)
+            if granularity == Granularity.major:
+                char_category = char_category[:1]
+            categories.append(char_category)
+
+        return categories
 
     @staticmethod
     def hex(s: str) -> str:
@@ -75,7 +84,7 @@ class Unicode:
         :param s: UTF-32 representation
         :return: hexadecimal values
         """
-        if len(s)==0:
+        if len(s) == 0:
             return ''
         # 将 UTF-32 字符串编码为字节串
         encoded = s.encode('utf-32')
@@ -84,7 +93,6 @@ class Unicode:
         hex_str = codecs.encode(encoded, 'hex').decode('ascii')
 
         return hex_str
-
 
     @staticmethod
     def string(s: str) -> str:
