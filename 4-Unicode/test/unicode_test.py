@@ -194,3 +194,4 @@ class UnicodeTest(unittest.TestCase):
         # empty string
         self.assertEqual('', Unicode.string(''))
         self.assertEqual('é', Unicode.string('\u00e9'))
+
