@@ -1,6 +1,5 @@
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
-from nltk.tokenize import word_tokenize
 from collections import OrderedDict
 class bagOfNgrams:
     def __init__(self, *args):
@@ -29,7 +28,7 @@ class bagOfNgrams:
         # 将文本转换为词袋模型
         self.doc = documents
         # 对self.doc分词
-        words = [word_tokenize(i) for i in self.doc]
+        words = [i.split() for i in self.doc]
         # 将Python中文本中的唯一单词存储在一个列表中,使用OrderedDict方法可以使其按照原始文本中单词的顺序排列，
         # 使用set是一个无序的集合，因此唯一单词列表的顺序可能与原始文本中单词的顺序不同。
         # self.Vocabulary = list(set([j for i in words for j in i]))
@@ -49,9 +48,9 @@ class bagOfNgrams:
             NgramLengths = str(self.ngramLengths)[1:-1] if len(self.ngramLengths) == 1 else str(self.ngramLengths)
             output = "bagOfNgrams with properties:\n\n"
             output += "        Counts: [" + str(len(self.counts)-1) + "x" + str(len(self.Ngrams)) + " double]\n"
-            output += "    Vocabulary: " + str(self.Vocabulary) + "\n"
-            # output += "    Vocabulary: [" + "1" + "x" + str(len(self.Vocabulary))+  " string]\n"
-            # output += "    Vocabulary: " + str([word_tokenize(i) for i in self.doc])[1:-1] + "\n"
+            # output += "    Vocabulary: " + str(self.Vocabulary) + "\n"
+            output += "    Vocabulary: [" + "1" + "x" + str(len(self.Vocabulary))+  " string]\n"
+            # output += "    Vocabulary: " + str([i.split() for i in self.doc])[1:-1] + "\n"
             output += "        Ngrams: [" + str(len(self.Ngrams)) + "x" + str(max(self.ngramLengths)) + " string]\n"
             output += "  NgramLengths: " + NgramLengths + "\n"
             output += "     NumNgrams: " + str(len(self.Ngrams)) + "\n"
@@ -62,7 +61,7 @@ class bagOfNgrams:
 
     def update(self):
         # 更新词袋模型，修改了Ngrams后需要调用此方法
-        words = [word_tokenize(i) for i in self.Ngrams]
+        words = [i.split() for i in self.Ngrams]
         self.Vocabulary = list(OrderedDict.fromkeys([j for i in words for j in i]))
 
 
@@ -175,7 +174,7 @@ def removeEmptyDocuments(input):
         # 如果输入是一个文本列表，则删除其中没有单词的文档
         non_empty_docs = []
         for doc in input:
-            if len(word_tokenize(doc)) > 0:
+            if len(doc.split()) > 0:
                 non_empty_docs.append(doc)
         return non_empty_docs
 
@@ -184,7 +183,7 @@ def removeEmptyDocuments(input):
         non_empty_docs = []
         non_empty_counts = []
         for i, doc in enumerate(input.counts):
-            if len(word_tokenize(input.doc[i])) > 0 and doc.any():
+            if len(input.doc[i].split()) > 0 and doc.any():
                 non_empty_docs.append(input.doc[i])
                 non_empty_counts.append(doc)
         newBag = bagOfNgrams(non_empty_docs)
