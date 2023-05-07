@@ -207,6 +207,8 @@ def encode(bag, input_data):
     else:
         # 如果输入既不是文本列表也不是文本字符串，则引发 ValueError 异常
         raise ValueError('输入必须是文本列表或文本字符串。')
+
+    # 计算频率计数矩阵
     X = bag.X.toarray()
 
     # 返回频率计数矩阵
