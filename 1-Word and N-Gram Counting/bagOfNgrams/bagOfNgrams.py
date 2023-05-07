@@ -1,7 +1,7 @@
 import numpy as np
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer,TfidfTransformer
 from collections import OrderedDict
-class bagOfNgrams:
+class bagOfNgram:
     def __init__(self, *args):
         self.ngramLengths = [2]
         self.counts = []
@@ -36,7 +36,7 @@ class bagOfNgrams:
         self.X = self.vectorizer.fit_transform(self.doc)
 
         # 将结果转换为MATLAB的bag对象格式
-        self.Ngrams = list(set(self.vectorizer.get_feature_names_out()))
+        self.Ngrams = list(set(self.vectorizer.get_feature_names()))
         self.counts = self.X.toarray().tolist()
 
         # 返回bag对象
@@ -80,7 +80,7 @@ def topkngrams(bag, k=5, *args):
     sum_ngrams = np.sum(bag_of_ngrams.toarray(), axis=0)
 
     top_n_indices = sum_ngrams.argsort()[-k:][::-1]
-    top_n_bigrams = np.array(bag.vectorizer.get_feature_names_out())[top_n_indices]
+    top_n_bigrams = np.array(bag.vectorizer.get_feature_names())[top_n_indices]
     top_n_counts = sum_ngrams[top_n_indices]
 
     # Print the top 10 bigrams and their counts
@@ -178,7 +178,7 @@ def removeEmptyDocuments(input):
                 non_empty_docs.append(doc)
         return non_empty_docs
 
-    elif isinstance(input, bagOfNgrams):
+    elif isinstance(input, bagOfNgram):
         # 如果输入是一个 bag-of-n-grams 模型，则删除其中没有单词或 n-grams 的文档
         non_empty_docs = []
         non_empty_counts = []
@@ -186,7 +186,7 @@ def removeEmptyDocuments(input):
             if len(input.doc[i].split()) > 0 and doc.any():
                 non_empty_docs.append(input.doc[i])
                 non_empty_counts.append(doc)
-        newBag = bagOfNgrams(non_empty_docs)
+        newBag = bagOfNgram(non_empty_docs)
         newBag.counts = non_empty_counts
         newBag.update()
         return newBag
@@ -208,8 +208,15 @@ def encode(bag, input_data):
         # 如果输入既不是文本列表也不是文本字符串，则引发 ValueError 异常
         raise ValueError('输入必须是文本列表或文本字符串。')
 
-    # 计算频率计数矩阵
-    X = bag.X.toarray()
 
-    # 返回频率计数矩阵
-    return X
+def tfidf(bag, documents=None):
+    # 计算词频-逆文档频率 (TF-IDF) 矩阵
+    if documents is None:
+        # 如果 documents 参数未指定，则计算 bag 中所有文档的 TF-IDF 矩阵
+        tfidf = TfidfTransformer().fit_transform(bag.X)
+    else:
+        # 如果 documents 参数已指定，则计算 documents 中文档的 TF-IDF 矩阵
+        tfidf = TfidfTransformer().fit_transform(encode(bag,documents))
+
+    # 返回 TF-IDF 矩阵
+    return tfidf.toarray()
