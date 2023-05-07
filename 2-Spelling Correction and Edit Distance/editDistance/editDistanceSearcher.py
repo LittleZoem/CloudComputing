@@ -1,7 +1,7 @@
 from editDistance import editDistance
 
 
-class EditDistanceSearcher:
+class editDistanceSearcher:
     def __init__(self, Vocabulary, MaximumDistance, InsertCost=1, DeleteCost=1, SubstituteCost=1):
         self.vocabulary = Vocabulary
         self.maximum_distance = MaximumDistance
@@ -21,7 +21,7 @@ class EditDistanceSearcher:
         return sorted(results, key=lambda x: x[1])
 
 
-def rangesearch(eds: EditDistanceSearcher, words, maxDist):
+def rangesearch(eds: editDistanceSearcher, words, maxDist):
     idx = []
     d = []
     for word in words:
@@ -29,12 +29,17 @@ def rangesearch(eds: EditDistanceSearcher, words, maxDist):
             idx.append([])
             d.append([])
         else:
-            idx.append(eds.search(word, maxDist)[0])
-            d.append(eds.search(word, maxDist)[1])
+            tmp1 = []
+            tmp2 = []
+            for tup in eds.search(word, maxDist):
+                tmp1.append(tup[0])
+                tmp2.append(tup[1])
+            idx.append(tmp1)
+            d.append(tmp2)
     return idx, d
 
 
-def knnsearch(eds: EditDistanceSearcher, words, maxDist, **kwargs):
+def knnsearch(eds: editDistanceSearcher, words, **kwargs):
     k = 1
     include_ties = False
     idx = []
@@ -46,17 +51,22 @@ def knnsearch(eds: EditDistanceSearcher, words, maxDist, **kwargs):
         else:
             raise ValueError("K must be an integer and larger than 0")
 
-    if 'IncludeTies' in kwargs.keys():
-        if isinstance(kwargs.get('IncludeTies'), bool):
-            include_ties = kwargs.get('IncludeTies')
-        else:
-            raise ValueError("IncludeTies must be a bool variable")
-
     for word in words:
-        if len(eds.search(word, maxDist)) == 0:
+        if len(eds.search(word, eds.maximum_distance)) == 0:
             idx.append([])
             d.append([])
         else:
-            idx.append(eds.search(word, maxDist)[:k][0])
-            d.append(eds.search(word, maxDist)[:k][1])
+            tmp1 = []
+            tmp2 = []
+            for tup in eds.search(word, eds.maximum_distance)[:k]:
+                tmp1.append(tup[0])
+                tmp2.append(tup[1])
+            idx.append(tmp1)
+            d.append(tmp2)
     return idx, d
+
+
+vocabulary = ["MathWorks", "MATLAB", "Simulink", "text", "analytics", "analysis"]
+eds = editDistanceSearcher(vocabulary, 4)
+words = ["test", "analytic", "analyze"]
+print(knnsearch(eds, words))
