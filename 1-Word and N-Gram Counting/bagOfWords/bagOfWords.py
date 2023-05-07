@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-import re
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
 from collections import Counter
 
 class bagOfWords:
@@ -266,16 +267,76 @@ class bagOfWords:
         self.data_wrd = [data_wrd.tolist(), []]
         self.data_cnt = [data_cnt.tolist(), []]
 
+    def wordcloud(self, **kwargs):
+        wordCnt = self.Counts
+        wordCnt = np.sum(wordCnt, axis=0).tolist()
+
+        wordcloud = WordCloud(width=800, height=800, background_color='white', colormap='viridis')
+        wordcloud.generate_from_frequencies(frequencies=dict(zip(self.Wordlist, wordCnt)))
+
+        plt.figure(figsize=(8, 8), facecolor=None)
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis("off")
+        plt.tight_layout(pad=0)
+        plt.show()
+
+    def tfidf(self, words=None, **kwargs):
+        if words is None:
+            tf = self.Counts
+        else:
+            tf = self.encode(words)
+
+        tf_weight = kwargs.get('TFWeight', 'raw').lower()[0]
+        if tf_weight == 'b':
+            tf = tf.astype(bool)
+        elif tf_weight == 'l':
+            tf[tf != 0] = 1 + np.log(tf[tf != 0])
+
+        idf_weight = kwargs.get('IDFWeight', 'normal').lower()[0]
+        nt = np.sum(tf > 0, axis=0).ravel()
+        if idf_weight == 'u':
+            idf = 1
+        elif idf_weight == 'n':
+            idf = np.log(self.NumDocuments / nt)
+        elif idf_weight == 's':
+            idf = np.log(1 + self.NumDocuments / nt)
+        elif idf_weight == 'm':
+            nt_per_doc = nt * (tf > 0)
+            idf = np.log(1 + np.max(nt_per_doc, axis=0) / nt)
+        elif idf_weight == 'p':
+            idf = np.log((self.NumDocuments - nt) / nt)
+        elif idf_weight == 't':
+            idf = np.log((self.NumDocuments - nt + 0.5) / (nt + 0.5))
+            avg_idf = np.mean(idf)
+            too_common = nt > self.NumDocuments / 2
+            idf[too_common] = kwargs.get('IDFCorrection', 0.25) * avg_idf
+        elif idf_weight == 'c':
+            idf = np.log((self.NumDocuments - nt + 0.5) / (nt + 0.5))
+
+        # t = tf.multiply(idf)
+        t = tf * idf
+
+        if kwargs.get('Normalized', False):
+            normfac = np.sqrt(np.sum(tf.power(2), axis=1)).ravel()
+            normfac[normfac == 0] = np.finfo(float).eps
+            t = t / normfac[:, None]
+
+        if kwargs.get('DocumentsIn', 'rows').lower() == 'columns':
+            t = t.T
+
+        return np.around(t, decimals=4)
+
 
 
 word = ["iji", "uuu", "popp", "yty"]
 count = [[1, 3, 1, 0], [1, 0, 0, 1], [0, 1, 2, 1]]
-# doc = [["我", "你", "hao"],["it's", "me", "hi", "me", "the", "prob"],[],["ifo"]]
-doc = [["hi", "oh", "UI", "yay"], ["oh", "yay", "hi", "pop", "Pop", "hi"], ["Hi", "Oh", "yay","Oh"],["hi", "oh", "pOP","OH"]]
+doc = [["我", "你", "hao"],["it's", "me", "hi", "me", "the", "prob"],[],["ifo"]]
+# doc = [["hi", "oh", "UI", "yay"], ["oh", "yay", "hi", "pop", "Pop", "hi"], ["Hi", "Oh", "yay","Oh"],["hi", "oh", "pOP","OH"]]
 # print(type(count))
 # count = np.array(count)
 # bg = bagOfWords(words=word, counts=count)
-bg = bagOfWords(doc)
+# doc = [["a", "new", "sentence", "sentence"], ["A", "second", "new", "Sentence"]]
+bg = bagOfWords(words=word, counts=count)
 print("=0===========", bg())
 wds = [["我", "me", "the"], ["Ni", "hao", "prob", "hao"]]
 print(bg.Wordlist)
@@ -298,13 +359,15 @@ print("------------------------------------------")
 # print(bg.Wordlist[0], bg.Wordlist[3])
 # print(bg.topkwords(2, IgnoreCase=True))
 # print(bg.removeWords("me"))
-print(bg.removeInfrequentWords(2))
+# print(bg.removeInfrequentWords(2))
 # print(bg.removeWords([2,3]))
 # print(bg.removeDocument([1,2]))
-print(bg.Wordlist)
-print(bg.data_wrd)
-print(bg.data_doc)
-print(bg.data_cnt)
-print(bg.NumDocuments)
-print(bg.NumWords)
-print(bg.Counts)
+# print(bg.Wordlist)
+# print(bg.data_wrd)
+# print(bg.data_doc)
+# print(bg.data_cnt)
+# print(bg.NumDocuments)
+# print(bg.NumWords)
+# print(bg.Counts)
+# print(bg.wordcloud())
+print(bg.tfidf(DocumentsIn='columns'))
