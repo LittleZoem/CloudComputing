@@ -69,6 +69,8 @@ def editDistance(str1: str = None, str2: str = None, document1=None, document2=N
         return get_edit_distance(s1=document1, s2=document2, insertCost=insert_cost, deleteCost=delete_cost,
                                  substituteCost=substitute_cost)
 
+    raise AttributeError("arguments should be two string or two tokenizedDocuments")
+
 
 # str1 = "It's time for breakfast."
 # doc1 = tokenizedDocument(str1)
